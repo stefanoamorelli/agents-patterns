@@ -64,14 +64,32 @@ class A2AAgentTool:
 
                 msg = create_message(text=message)
 
+                response_text = ""
                 async for event in client.send_message(msg):
-                    if isinstance(event, Message):
-                        response_text = ""
+                    # The event is a tuple of (Task, optional_message)
+                    if isinstance(event, tuple):
+                        task, _ = event
+                        # Extract response from task artifacts
+                        if hasattr(task, 'artifacts') and task.artifacts:
+                            for artifact in task.artifacts:
+                                if hasattr(artifact, 'parts'):
+                                    for part in artifact.parts:
+                                        content = part.root if hasattr(part, 'root') else part
+                                        if hasattr(content, 'text'):
+                                            response_text += content.text
+                                        elif hasattr(part, 'text'):
+                                            response_text += part.text
+                    elif isinstance(event, Message):
+                        # Also handle direct message events if they occur
                         for part in event.parts:
-                            if hasattr(part, 'text'):
+                            content = part.root if hasattr(part, 'root') else part
+                            if hasattr(content, 'text'):
+                                response_text += content.text
+                            elif hasattr(part, 'text'):
                                 response_text += part.text
-                        return response_text
 
+                if response_text:
+                    return response_text
                 return f"No response received from {self.agent_name}"
 
         except Exception as e:
@@ -138,10 +156,15 @@ async def main():
 
     analysis_request = """Perform comprehensive analysis of Apple Inc (AAPL):
 
-    1. Get the latest 10-K filing and extract key financial metrics
-    2. Analyze recent economic indicators (GDP, unemployment, tech sector trends)
+    1. Get the latest 10-K filing and extract key financial metrics (revenue, net income, cash flow)
+    2. Analyze recent economic indicators:
+       - Latest GDP growth rate
+       - Current unemployment rate
+       - Recent inflation trends (limit to last 2 years)
     3. Assess how current macroeconomic conditions may impact Apple's business
     4. Provide investment perspective considering both company fundamentals and economic context
+
+    IMPORTANT: Keep queries focused and limit data retrieval to recent periods only.
     """
 
     logger.info("\n" + "=" * 80)

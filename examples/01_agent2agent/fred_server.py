@@ -4,6 +4,7 @@
 This server exposes a FRED economic analyst agent via the A2A protocol,
 using the real FRED MCP server for data access.
 """
+
 import logging
 import sys
 from pathlib import Path
@@ -47,6 +48,13 @@ def main():
             - Compare historical data and identify patterns
             - Provide economic context for business decisions
 
+            CRITICAL: To avoid overwhelming the context:
+            - When searching, use specific keywords and limit results to top 5-10 series
+            - When browsing, focus on specific categories rather than broad exploration
+            - When retrieving series data, limit date ranges to recent periods (last 1-5 years)
+            - Prioritize the most relevant indicators for the query
+            - Never attempt to retrieve or analyze hundreds of series at once
+
             Always cite specific series IDs and date ranges in your analysis.""",
             tools=fred_tools,
             model=get_default_model(),
@@ -54,15 +62,11 @@ def main():
 
         logger.info("Creating A2A server on port 9001...")
 
-        server = A2AServer(
-            agent=agent,
-            host="127.0.0.1",
-            port=9001
-        )
+        server = A2AServer(agent=agent, host="127.0.0.1", port=9001)
 
         logger.info("=" * 80)
         logger.info("FRED A2A Server running on http://127.0.0.1:9001")
-        logger.info("Agent Card: http://127.0.0.1:9001/.well-known/ai-agent.json")
+        logger.info("Agent Card: http://127.0.0.1:9001/.well-known/agent-card.json")
         logger.info("=" * 80)
 
         server.serve()

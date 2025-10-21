@@ -4,6 +4,7 @@
 This server exposes a SEC EDGAR analyst agent via the A2A protocol,
 using the real SEC EDGAR MCP server for data access.
 """
+
 import logging
 import sys
 from pathlib import Path
@@ -54,15 +55,11 @@ def main():
 
         logger.info("Creating A2A server on port 9000...")
 
-        server = A2AServer(
-            agent=agent,
-            host="127.0.0.1",
-            port=9000
-        )
+        server = A2AServer(agent=agent, host="127.0.0.1", port=9000)
 
         logger.info("=" * 80)
         logger.info("SEC EDGAR A2A Server running on http://127.0.0.1:9000")
-        logger.info("Agent Card: http://127.0.0.1:9000/.well-known/ai-agent.json")
+        logger.info("Agent Card: http://127.0.0.1:9000/.well-known/agent-card.json")
         logger.info("=" * 80)
 
         server.serve()

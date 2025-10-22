@@ -1,22 +1,18 @@
 #!/usr/bin/env python3
 """Financial Analyst using A2A Protocol.
 
-This orchestrator coordinates multiple A2A agents to perform comprehensive
-financial analysis combining SEC filings and economic data.
+This orchestrator uses the Strands A2A Client Tool to discover and interact
+with A2A agents for comprehensive financial analysis.
 """
 import asyncio
 import logging
 import sys
 from pathlib import Path
-from uuid import uuid4
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-import httpx
-from a2a.client import A2ACardResolver, ClientConfig, ClientFactory
-from a2a.types import Message, Part, Role, TextPart
-
-from strands import Agent, tool
+from strands import Agent
+from strands_tools.a2a_client import A2AClientToolProvider
 
 from examples.utils.config import Config
 from examples.utils.models import get_default_model
@@ -24,133 +20,41 @@ from examples.utils.models import get_default_model
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-DEFAULT_TIMEOUT = 300
-
-
-def create_message(*, role: Role = Role.user, text: str) -> Message:
-    return Message(
-        kind="message",
-        role=role,
-        parts=[Part(TextPart(kind="text", text=text))],
-        message_id=uuid4().hex,
-    )
-
-
-class A2AAgentTool:
-    """Wrapper to call A2A agents as tools."""
-
-    def __init__(self, agent_url: str, agent_name: str):
-        self.agent_url = agent_url
-        self.agent_name = agent_name
-        self.agent_card = None
-
-    async def _ensure_initialized(self):
-        """Discover agent card if not already done."""
-        if self.agent_card is None:
-            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as httpx_client:
-                resolver = A2ACardResolver(httpx_client=httpx_client, base_url=self.agent_url)
-                self.agent_card = await resolver.get_agent_card()
-                logger.info(f"Discovered {self.agent_name} at {self.agent_url}")
-
-    async def call_agent(self, message: str) -> str:
-        """Send a message to the A2A agent and return response."""
-        await self._ensure_initialized()
-
-        try:
-            async with httpx.AsyncClient(timeout=DEFAULT_TIMEOUT) as httpx_client:
-                config = ClientConfig(httpx_client=httpx_client, streaming=False)
-                factory = ClientFactory(config)
-                client = factory.create(self.agent_card)
-
-                msg = create_message(text=message)
-
-                response_text = ""
-                async for event in client.send_message(msg):
-                    # The event is a tuple of (Task, optional_message)
-                    if isinstance(event, tuple):
-                        task, _ = event
-                        # Extract response from task artifacts
-                        if hasattr(task, 'artifacts') and task.artifacts:
-                            for artifact in task.artifacts:
-                                if hasattr(artifact, 'parts'):
-                                    for part in artifact.parts:
-                                        content = part.root if hasattr(part, 'root') else part
-                                        if hasattr(content, 'text'):
-                                            response_text += content.text
-                                        elif hasattr(part, 'text'):
-                                            response_text += part.text
-                    elif isinstance(event, Message):
-                        # Also handle direct message events if they occur
-                        for part in event.parts:
-                            content = part.root if hasattr(part, 'root') else part
-                            if hasattr(content, 'text'):
-                                response_text += content.text
-                            elif hasattr(part, 'text'):
-                                response_text += part.text
-
-                if response_text:
-                    return response_text
-                return f"No response received from {self.agent_name}"
-
-        except Exception as e:
-            logger.error(f"Error calling {self.agent_name}: {e}")
-            return f"Error contacting {self.agent_name}: {str(e)}"
-
 
 async def main():
     Config.validate()
 
     logger.info("Initializing Financial Analyst A2A Orchestrator...")
 
-    # Create A2A agent tools
-    sec_agent = A2AAgentTool("http://127.0.0.1:9000", "SEC EDGAR Analyst")
-    fred_agent = A2AAgentTool("http://127.0.0.1:9001", "FRED Economic Analyst")
+    # Create A2A client tool provider with known agent URLs
+    # These agents should be running on the specified ports
+    a2a_provider = A2AClientToolProvider(
+        known_agent_urls=[
+            "http://127.0.0.1:9000",  # SEC EDGAR Analyst
+            "http://127.0.0.1:9001",  # FRED Economic Analyst
+        ]
+    )
 
-    # Wrap as Strands tools
-    @tool
-    async def call_sec_edgar_analyst(query: str) -> str:
-        """
-        Call the SEC EDGAR analyst agent to analyze company filings and financial data.
+    logger.info("A2A Client Tool Provider initialized with known agents")
 
-        Args:
-            query: Question or analysis request about SEC filings, company financials, or disclosures
-
-        Returns:
-            Analysis from SEC EDGAR specialist
-        """
-        return await sec_agent.call_agent(query)
-
-    @tool
-    async def call_fred_analyst(query: str) -> str:
-        """
-        Call the FRED economic analyst agent to analyze macroeconomic data and trends.
-
-        Args:
-            query: Question or analysis request about economic indicators, GDP, unemployment, etc.
-
-        Returns:
-            Analysis from FRED economic specialist
-        """
-        return await fred_agent.call_agent(query)
-
-    # Create orchestrator with A2A tools
+    # Create orchestrator with A2A client tools
+    # The provider automatically discovers agents and creates appropriate tools
     orchestrator = Agent(
         name="Financial Analyst Orchestrator",
         description="Coordinates SEC EDGAR and FRED specialist agents via A2A protocol",
         system_prompt="""You are a senior financial analyst orchestrating specialized A2A agents.
 
-        Available agents:
-        1. call_sec_edgar_analyst - Expert in SEC filings, company financials, and disclosures
-        2. call_fred_analyst - Expert in macroeconomic data, trends, and FRED indicators
+        You have access to A2A client tools that can discover and interact with available agents.
 
         Your approach:
-        1. Delegate SEC filing questions to the SEC EDGAR analyst
-        2. Delegate economic data questions to the FRED analyst
-        3. Synthesize insights from both agents
-        4. Provide comprehensive analysis combining company-specific and macroeconomic perspectives
+        1. Discover available A2A agents using the provided tools
+        2. Delegate SEC filing questions to the SEC EDGAR analyst
+        3. Delegate economic data questions to the FRED analyst
+        4. Synthesize insights from both agents
+        5. Provide comprehensive analysis combining company-specific and macroeconomic perspectives
 
         Always coordinate agent findings into coherent, actionable insights.""",
-        tools=[call_sec_edgar_analyst, call_fred_analyst],
+        tools=a2a_provider.tools,
         model=get_default_model(),
     )
 

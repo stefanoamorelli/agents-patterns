@@ -6,7 +6,7 @@ from pathlib import Path
 
 def get_sec_edgar_mcp_client():
     """Get MCPClient connected to SEC EDGAR MCP server."""
-    sec_edgar_path = Path("/home/amorelli/development/sec-edgar-mcp")
+    sec_edgar_path = Path("/home/stefanoamorelli/sec-edgar-mcp")
 
     if not sec_edgar_path.exists():
         raise FileNotFoundError(
@@ -17,26 +17,26 @@ def get_sec_edgar_mcp_client():
     server_script = sec_edgar_path / "sec_edgar_mcp" / "server.py"
 
     if not server_script.exists():
-        raise FileNotFoundError(
-            f"SEC EDGAR server script not found at {server_script}"
-        )
+        raise FileNotFoundError(f"SEC EDGAR server script not found at {server_script}")
 
     user_agent = os.getenv("SEC_EDGAR_USER_AGENT")
     if not user_agent:
         raise ValueError("SEC_EDGAR_USER_AGENT environment variable is required")
 
-    return MCPClient(lambda: stdio_client(
-        StdioServerParameters(
-            command="python",
-            args=[str(server_script)],
-            env={"SEC_EDGAR_USER_AGENT": user_agent}
+    return MCPClient(
+        lambda: stdio_client(
+            StdioServerParameters(
+                command="python",
+                args=[str(server_script)],
+                env={"SEC_EDGAR_USER_AGENT": user_agent},
+            )
         )
-    ))
+    )
 
 
 def get_fred_mcp_client():
     """Get MCPClient connected to FRED MCP server."""
-    fred_path = Path("/home/amorelli/development/fred-mcp-server")
+    fred_path = Path("/home/stefanoamorelli/fred-mcp-server")
 
     if not fred_path.exists():
         raise FileNotFoundError(
@@ -56,13 +56,13 @@ def get_fred_mcp_client():
     if not fred_api_key:
         raise ValueError("FRED_API_KEY environment variable is required")
 
-    return MCPClient(lambda: stdio_client(
-        StdioServerParameters(
-            command="node",
-            args=[str(server_script)],
-            env={"FRED_API_KEY": fred_api_key}
+    return MCPClient(
+        lambda: stdio_client(
+            StdioServerParameters(
+                command="node", args=[str(server_script)], env={"FRED_API_KEY": fred_api_key}
+            )
         )
-    ))
+    )
 
 
 def get_combined_mcp_tools():

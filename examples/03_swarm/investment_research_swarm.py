@@ -1,9 +1,10 @@
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 """Investment Research Swarm Example.
 
 This example demonstrates the Swarm pattern where specialized agents collaborate
 autonomously to perform comprehensive investment research using real MCP servers.
 """
+
 import logging
 import sys
 from pathlib import Path
@@ -18,8 +19,7 @@ from examples.utils.models import get_default_model
 from examples.utils.mcp_tools import get_sec_edgar_mcp_client, get_fred_mcp_client
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 logging.getLogger("strands.multiagent").setLevel(logging.DEBUG)
@@ -116,7 +116,7 @@ def main():
             execution_timeout=900.0,
             node_timeout=300.0,
             repetitive_handoff_detection_window=8,
-            repetitive_handoff_min_unique_agents=3
+            repetitive_handoff_min_unique_agents=3,
         )
 
         research_request = """Perform comprehensive investment research on Microsoft (MSFT):

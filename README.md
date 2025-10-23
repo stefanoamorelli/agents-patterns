@@ -14,7 +14,7 @@ This repository demonstrates four different agentic patterns using [Claude](http
 - Python 3.10+
 - Node.js 18+ (for FRED MCP server)
 - Anthropic API key
-- FRED API key (get it from [FRED](https://fred.stlouisfed.org/docs/api/api_key.html))
+- FRED API key (free - [sign up and request a key](https://fred.stlouisfed.org/docs/api/api_key.html))
 
 ## Setup Instructions
 
@@ -27,22 +27,22 @@ cd agents-patterns
 
 ### 2. Set Up MCP Servers
 
-Clone the required MCP servers as sibling directories:
+Clone and install the required MCP servers as sibling directories:
 
 ```bash
 cd ..
 
-# Clone SEC EDGAR MCP server
+# Clone and install SEC EDGAR MCP server
 git clone https://github.com/stefanoamorelli/sec-edgar-mcp
 cd sec-edgar-mcp
-pip install .
+pip install .  # Install dependencies inside sec-edgar-mcp directory
 cd ..
 
-# Clone FRED MCP server
+# Clone and install FRED MCP server
 git clone https://github.com/stefanoamorelli/fred-mcp-server
 cd fred-mcp-server
-npm install
-npm run build
+npm install  # Install dependencies inside fred-mcp-server directory
+npm run build  # Build the TypeScript server
 cd ..
 
 # Return to agents-patterns directory

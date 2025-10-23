@@ -3,7 +3,7 @@
 > [!IMPORTANT]
 > This is a demo repository created for the presentation at AWS Dev Day Copenhagen 2025. It is intended for educational purposes and experimentation. **Not meant for production use.**
 
-This repository demonstrates four different agentic patterns using [Claude](https://www.anthropic.com/claude), the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), and the [Strands SDK](https://github.com/joshuavial/strands).
+This repository demonstrates four different multi-agents patterns (A2A, Agents as Tools, Swarm, DAGs) using [Claude](https://www.anthropic.com/claude), the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/), and the [Strands SDK](https://github.com/joshuavial/strands).
 
 **Resources:**
 - [Presentation Slides](https://docs.google.com/presentation/d/10mm5Bqztkj15zadAWk_jcvjjEjoZJ0Id3oAU2arCF-0/edit?usp=sharing)

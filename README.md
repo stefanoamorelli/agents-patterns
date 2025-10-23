@@ -90,6 +90,8 @@ This repository demonstrates four agentic patterns:
 ### 1. Agent-to-Agent (A2A)
 Agents collaborate by delegating specialized tasks to each other.
 ```bash
+python examples/01_agent2agent/sec_edgar_server.py
+python examples/01_agent2agent/fred_server.py
 python examples/01_agent2agent/financial_analyst_a2a.py
 ```
 

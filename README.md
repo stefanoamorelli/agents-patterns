@@ -7,9 +7,9 @@ As presented at AWS Dev Day Copenhagen 2025.
 
 ### Getting started
 
-Clone and `pip install .`/`npm install`:
-- SEC EDGAR MCP
-- FRED MCP Server
+Clone locally and `pip install .`/`npm install`:
+- SEC EDGAR MCP > https://github.com/stefanoamorelli/sec-edgar-mcp
+- FRED MCP Server > https://github.com/stefanoamorelli/fred-mcp-server
 
 Update the paths of the MCP servers in this file: `https://github.com/stefanoamorelli/agents-patterns/blob/main/examples/utils/mcp_tools.py#L9`.
 

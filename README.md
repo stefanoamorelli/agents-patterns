@@ -1,4 +1,4 @@
-> [!INFO]
+> [!IMPORTANT]
 > WIP. This repository will be improved by Sunday Oct 26 2025. Feel free to review and experiment!
 
 ### Agents Patterns

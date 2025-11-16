@@ -17,25 +17,34 @@ from strands.multiagent.a2a import A2AServer
 from examples.utils.config import Config
 from examples.utils.models import get_default_model
 from examples.utils.mcp_tools import get_fred_mcp_client
+from examples.utils.logging import (
+    setup_logging,
+    log_section,
+    log_info,
+    log_success,
+    log_data,
+    console,
+)
 
-logging.basicConfig(level=logging.INFO)
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
 def main():
     Config.validate()
 
-    logger.info("Starting FRED A2A Server...")
+    log_section("FRED Economic Data A2A Server")
+    log_info("Starting server...")
 
     fred_client = get_fred_mcp_client()
 
-    logger.info("Connecting to FRED MCP server...")
+    log_info("Connecting to FRED MCP server...")
 
     with fred_client:
-        logger.info("Successfully connected to FRED MCP server")
+        log_success("Successfully connected to FRED MCP server")
 
         fred_tools = fred_client.list_tools_sync()
-        logger.info(f"Retrieved {len(fred_tools)} FRED tools")
+        log_data("Retrieved FRED tools", len(fred_tools))
 
         agent = Agent(
             name="FRED Economic Analyst",
@@ -60,14 +69,13 @@ def main():
             model=get_default_model(),
         )
 
-        logger.info("Creating A2A server on port 9001...")
+        log_info("Creating A2A server on port 9001...")
 
         server = A2AServer(agent=agent, host="127.0.0.1", port=9001)
 
-        logger.info("=" * 80)
-        logger.info("FRED A2A Server running on http://127.0.0.1:9001")
-        logger.info("Agent Card: http://127.0.0.1:9001/.well-known/agent-card.json")
-        logger.info("=" * 80)
+        log_section("Server Ready")
+        log_success("FRED A2A Server running on http://127.0.0.1:9001")
+        log_data("Agent Card", "http://127.0.0.1:9001/.well-known/agent-card.json")
 
         server.serve()
 
@@ -76,7 +84,7 @@ if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        logger.info("\nServer stopped by user")
+        console.print("\n[warning]Server stopped by user[/warning]")
     except Exception as e:
         logger.error(f"Server failed: {e}", exc_info=True)
         sys.exit(1)

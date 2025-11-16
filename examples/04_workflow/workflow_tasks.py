@@ -21,7 +21,7 @@ def get_company_analysis_tasks(ticker: str) -> list[dict]:
 
             Output structured data with specific values and filing references.""",
             "dependencies": [],
-            "priority": 5
+            "priority": 5,
         },
         {
             "task_id": "economic_analysis",
@@ -37,7 +37,7 @@ def get_company_analysis_tasks(ticker: str) -> list[dict]:
 
             Focus on indicators that materially impact the company's sector.""",
             "dependencies": [],
-            "priority": 5
+            "priority": 5,
         },
         {
             "task_id": "financial_analysis",
@@ -54,7 +54,7 @@ def get_company_analysis_tasks(ticker: str) -> list[dict]:
             Use data from the data_extraction task.
             Provide numerical analysis with specific metrics.""",
             "dependencies": ["data_extraction"],
-            "priority": 4
+            "priority": 4,
         },
         {
             "task_id": "competitive_analysis",
@@ -71,7 +71,7 @@ def get_company_analysis_tasks(ticker: str) -> list[dict]:
             Use SEC filings to understand business strategy and positioning.
             Compare financial metrics against competitors where possible.""",
             "dependencies": ["data_extraction"],
-            "priority": 4
+            "priority": 4,
         },
         {
             "task_id": "valuation_model",
@@ -88,7 +88,7 @@ def get_company_analysis_tasks(ticker: str) -> list[dict]:
             Use outputs from financial_analysis, economic_analysis, and competitive_analysis.
             Provide clear valuation with supporting rationale.""",
             "dependencies": ["financial_analysis", "economic_analysis", "competitive_analysis"],
-            "priority": 2
+            "priority": 2,
         },
         {
             "task_id": "final_report",
@@ -105,8 +105,8 @@ def get_company_analysis_tasks(ticker: str) -> list[dict]:
             Use all previous task outputs to build comprehensive view.
             Write for sophisticated institutional investors.""",
             "dependencies": ["valuation_model"],
-            "priority": 1
-        }
+            "priority": 1,
+        },
     ]
 
 
@@ -125,15 +125,16 @@ def get_sector_comparison_tasks(sector: str, companies: list[str]) -> list[dict]
 
             Provide comprehensive sector context.""",
             "dependencies": [],
-            "priority": 5
+            "priority": 5,
         }
     ]
 
     for i, company in enumerate(companies):
-        tasks.append({
-            "task_id": f"analyze_{company.lower()}",
-            "description": f"Analyze {company} financial metrics and competitive position",
-            "system_prompt": f"""You are a company analyst.
+        tasks.append(
+            {
+                "task_id": f"analyze_{company.lower()}",
+                "description": f"Analyze {company} financial metrics and competitive position",
+                "system_prompt": f"""You are a company analyst.
 
             Your task:
             - Extract key metrics from {company}'s SEC filings
@@ -142,14 +143,16 @@ def get_sector_comparison_tasks(sector: str, companies: list[str]) -> list[dict]
             - Identify company-specific strengths and risks
 
             Focus on metrics comparable across companies.""",
-            "dependencies": ["sector_overview"],
-            "priority": 4 - (i * 0.1)
-        })
+                "dependencies": ["sector_overview"],
+                "priority": 4 - (i * 0.1),
+            }
+        )
 
-    tasks.append({
-        "task_id": "comparative_analysis",
-        "description": f"Compare all {sector} companies and identify best opportunities",
-        "system_prompt": f"""You are a comparative analyst.
+    tasks.append(
+        {
+            "task_id": "comparative_analysis",
+            "description": f"Compare all {sector} companies and identify best opportunities",
+            "system_prompt": f"""You are a comparative analyst.
 
         Your task:
         - Compare financial metrics across all analyzed companies
@@ -159,8 +162,9 @@ def get_sector_comparison_tasks(sector: str, companies: list[str]) -> list[dict]
         - Recommend portfolio allocation
 
         Synthesize all company analyses into actionable recommendations.""",
-        "dependencies": [f"analyze_{c.lower()}" for c in companies],
-        "priority": 1
-    })
+            "dependencies": [f"analyze_{c.lower()}" for c in companies],
+            "priority": 1,
+        }
+    )
 
     return tasks

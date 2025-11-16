@@ -4,6 +4,7 @@
 This example demonstrates the Graph pattern for structured, dependency-based
 task orchestration with parallel execution using GraphBuilder.
 """
+
 import logging
 import sys
 from pathlib import Path
@@ -16,11 +17,16 @@ from strands.multiagent import GraphBuilder
 from examples.utils.config import Config
 from examples.utils.models import get_default_model
 from examples.utils.mcp_tools import get_sec_edgar_mcp_client, get_fred_mcp_client
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+from examples.utils.logging import (
+    setup_logging,
+    log_section,
+    log_info,
+    log_success,
+    log_data,
+    console,
 )
+
+setup_logging()
 logger = logging.getLogger(__name__)
 logging.getLogger("strands.multiagent").setLevel(logging.DEBUG)
 
@@ -28,21 +34,22 @@ logging.getLogger("strands.multiagent").setLevel(logging.DEBUG)
 def main():
     Config.validate()
 
-    logger.info("Initializing Company Analysis Graph with MCP servers...")
+    log_section("Company Analysis Workflow")
+    log_info("Initializing with MCP servers...")
 
     sec_client = get_sec_edgar_mcp_client()
     fred_client = get_fred_mcp_client()
 
-    logger.info("Connecting to SEC EDGAR and FRED MCP servers...")
+    log_info("Connecting to SEC EDGAR and FRED MCP servers...")
 
     with sec_client, fred_client:
-        logger.info("Successfully connected to MCP servers")
+        log_success("Successfully connected to MCP servers")
 
         sec_tools = sec_client.list_tools_sync()
         fred_tools = fred_client.list_tools_sync()
 
-        logger.info(f"Retrieved {len(sec_tools)} SEC EDGAR tools")
-        logger.info(f"Retrieved {len(fred_tools)} FRED tools")
+        log_data("SEC EDGAR tools", len(sec_tools))
+        log_data("FRED tools", len(fred_tools))
 
         # Create specialized agents for workflow nodes
         data_gatherer = Agent(
@@ -110,7 +117,7 @@ def main():
         )
 
         # Build the workflow graph
-        logger.info("\nBuilding analysis workflow graph...")
+        log_info("Building analysis workflow graph...")
 
         builder = GraphBuilder()
 
@@ -134,15 +141,20 @@ def main():
 
         # Configure execution parameters
         builder.set_execution_timeout(900.0)  # 15 minutes
-        builder.set_node_timeout(300.0)       # 5 minutes per node
+        builder.set_node_timeout(300.0)  # 5 minutes per node
 
         # Build the graph
         graph = builder.build()
 
-        logger.info("Graph structure:")
-        logger.info("  data_gathering → [financial_analysis, risk_analysis]")
-        logger.info("  [financial_analysis, risk_analysis] → synthesis")
-        logger.info("\nNote: financial_analysis and risk_analysis will execute in parallel")
+        log_success("Graph built successfully!")
+        log_info("Graph structure:")
+        console.print(
+            "  [cyan]data_gathering[/cyan] → [[cyan]financial_analysis[/cyan], [cyan]risk_analysis[/cyan]]"
+        )
+        console.print(
+            "  [[cyan]financial_analysis[/cyan], [cyan]risk_analysis[/cyan]] → [cyan]synthesis[/cyan]"
+        )
+        log_info("Note: financial_analysis and risk_analysis will execute in parallel")
 
         ticker = "AAPL"
         analysis_request = f"""Perform comprehensive investment analysis on {ticker}:
@@ -154,44 +166,35 @@ def main():
 
         Execute the workflow to completion."""
 
-        logger.info("\n" + "=" * 80)
-        logger.info("WORKFLOW REQUEST")
-        logger.info("=" * 80)
-        logger.info(f"Ticker: {ticker}")
-        logger.info(analysis_request)
-        logger.info("=" * 80 + "\n")
+        log_section("Workflow Request")
+        log_data("Ticker", ticker)
+        console.print(analysis_request)
 
-        logger.info("Executing graph workflow...\n")
+        log_info("Executing graph workflow...")
 
         result = graph(analysis_request)
 
-        logger.info("\n" + "=" * 80)
-        logger.info("WORKFLOW EXECUTION SUMMARY")
-        logger.info("=" * 80)
-        logger.info(f"Status: {result.status}")
-        logger.info(f"Total nodes: {result.total_nodes}")
-        logger.info(f"Completed: {result.completed_nodes}")
-        logger.info(f"Failed: {result.failed_nodes}")
-        logger.info(f"Execution time: {result.execution_time}ms")
-        logger.info(f"\nExecution order: {[node.node_id for node in result.execution_order]}")
-        logger.info("=" * 80 + "\n")
+        log_section("Workflow Execution Summary")
+        log_data("Status", result.status)
+        log_data("Total nodes", result.total_nodes)
+        log_data("Completed", result.completed_nodes)
+        log_data("Failed", result.failed_nodes)
+        log_data("Execution time", f"{result.execution_time}ms")
+        log_data("Execution order", [node.node_id for node in result.execution_order])
 
-        logger.info("\n" + "=" * 80)
-        logger.info("INVESTMENT ANALYSIS REPORT")
-        logger.info("=" * 80)
+        log_section("Investment Analysis Report")
 
         # Get final synthesized report
         synthesis_result = result.results["synthesis"].result
-        logger.info(synthesis_result)
-
-        logger.info("=" * 80)
+        console.print(synthesis_result)
 
 
 if __name__ == "__main__":
     try:
         main()
+        log_success("Analysis completed successfully!")
     except KeyboardInterrupt:
-        logger.info("\nAnalysis interrupted by user")
+        console.print("\n[warning]Analysis interrupted by user[/warning]")
     except Exception as e:
         logger.error(f"Analysis failed: {e}", exc_info=True)
         sys.exit(1)

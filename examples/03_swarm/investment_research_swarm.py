@@ -1,4 +1,4 @@
-# !/usr/bin/env python3
+#!/usr/bin/env python3
 """Investment Research Swarm Example.
 
 This example demonstrates the Swarm pattern where specialized agents collaborate
@@ -17,10 +17,16 @@ from strands import Agent
 from examples.utils.config import Config
 from examples.utils.models import get_default_model
 from examples.utils.mcp_tools import get_sec_edgar_mcp_client, get_fred_mcp_client
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+from examples.utils.logging import (
+    setup_logging,
+    log_section,
+    log_info,
+    log_success,
+    log_data,
+    console,
 )
+
+setup_logging()
 logger = logging.getLogger(__name__)
 logging.getLogger("strands.multiagent").setLevel(logging.DEBUG)
 
@@ -28,21 +34,22 @@ logging.getLogger("strands.multiagent").setLevel(logging.DEBUG)
 def main():
     Config.validate()
 
-    logger.info("Initializing Investment Research Swarm with MCP servers...")
+    log_section("Investment Research Swarm")
+    log_info("Initializing with MCP servers...")
 
     sec_client = get_sec_edgar_mcp_client()
     fred_client = get_fred_mcp_client()
 
-    logger.info("Connecting to SEC EDGAR and FRED MCP servers...")
+    log_info("Connecting to SEC EDGAR and FRED MCP servers...")
 
     with sec_client, fred_client:
-        logger.info("Successfully connected to MCP servers")
+        log_success("Successfully connected to MCP servers")
 
         sec_tools = sec_client.list_tools_sync()
         fred_tools = fred_client.list_tools_sync()
 
-        logger.info(f"Retrieved {len(sec_tools)} SEC EDGAR tools")
-        logger.info(f"Retrieved {len(fred_tools)} FRED tools")
+        log_data("SEC EDGAR tools", len(sec_tools))
+        log_data("FRED tools", len(fred_tools))
 
         researcher = Agent(
             name="Data Researcher",
@@ -128,28 +135,23 @@ def main():
 
         Collaborate as a team to produce thorough investment analysis."""
 
-        logger.info("\n" + "=" * 80)
-        logger.info("SWARM RESEARCH REQUEST")
-        logger.info("=" * 80)
-        logger.info(research_request)
-        logger.info("=" * 80 + "\n")
+        log_section("Swarm Research Request")
+        console.print(research_request)
 
-        logger.info("Swarm executing research with autonomous collaboration...\n")
+        log_info("Swarm executing research with autonomous collaboration...")
 
         result = swarm(research_request)
 
-        logger.info("\n" + "=" * 80)
-        logger.info("SWARM INVESTMENT ANALYSIS")
-        logger.info("=" * 80)
-        logger.info(result)
-        logger.info("=" * 80)
+        log_section("Swarm Investment Analysis")
+        console.print(result)
 
 
 if __name__ == "__main__":
     try:
         main()
+        log_success("Research completed successfully!")
     except KeyboardInterrupt:
-        logger.info("\nResearch interrupted by user")
+        console.print("\n[warning]Research interrupted by user[/warning]")
     except Exception as e:
         logger.error(f"Research failed: {e}", exc_info=True)
         sys.exit(1)

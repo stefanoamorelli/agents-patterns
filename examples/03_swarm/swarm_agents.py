@@ -3,6 +3,7 @@
 This module defines the specialist agents that collaborate in the swarm.
 Each agent has specific expertise and contributes to collective intelligence.
 """
+
 from strands import Agent
 
 from examples.utils.mcp_tools import (

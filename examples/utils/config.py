@@ -18,8 +18,14 @@ class Config:
     @classmethod
     def validate(cls) -> None:
         if not cls.ANTHROPIC_API_KEY:
-            raise ValueError("ANTHROPIC_API_KEY not found. Make sure it's exported in your shell environment")
+            raise ValueError(
+                "ANTHROPIC_API_KEY not found. Make sure it's exported in your shell environment"
+            )
         if not cls.FRED_API_KEY:
-            raise ValueError("FRED_API_KEY is required. Get one from https://fred.stlouisfed.org/docs/api/api_key.html")
+            raise ValueError(
+                "FRED_API_KEY is required. Get one from https://fred.stlouisfed.org/docs/api/api_key.html"
+            )
         if not cls.SEC_EDGAR_USER_AGENT:
-            raise ValueError("SEC_EDGAR_USER_AGENT is required (format: 'Your Name (email@example.com)')")
+            raise ValueError(
+                "SEC_EDGAR_USER_AGENT is required (format: 'Your Name (email@example.com)')"
+            )

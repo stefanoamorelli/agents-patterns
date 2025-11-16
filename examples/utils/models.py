@@ -11,8 +11,9 @@ def get_anthropic_model():
         )
 
     from strands.models.anthropic import AnthropicModel
+
     return AnthropicModel(
-        model_id="claude-3-5-sonnet-20241022",
+        model_id="claude-sonnet-4-5-20250929",
         max_tokens=8192,
     )
 

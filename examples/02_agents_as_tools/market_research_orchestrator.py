@@ -5,6 +5,7 @@ This orchestrator coordinates multiple specialist agents to perform
 comprehensive market research combining company filings, economic data, and sector analysis.
 All agents use real MCP servers (SEC EDGAR and FRED).
 """
+
 import logging
 import sys
 from pathlib import Path
@@ -16,37 +17,43 @@ from strands import Agent
 from examples.utils.config import Config
 from examples.utils.models import get_default_model
 from examples.utils.mcp_tools import get_sec_edgar_mcp_client, get_fred_mcp_client
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+from examples.utils.logging import (
+    setup_logging,
+    log_section,
+    log_info,
+    log_success,
+    log_data,
+    console,
 )
+
+setup_logging()
 logger = logging.getLogger(__name__)
 
 
 def main():
     Config.validate()
 
-    logger.info("Initializing Market Research Orchestrator with MCP servers...")
+    log_section("Market Research Orchestrator")
+    log_info("Initializing with MCP servers...")
 
     sec_client = get_sec_edgar_mcp_client()
     fred_client = get_fred_mcp_client()
 
-    logger.info("Connecting to SEC EDGAR and FRED MCP servers...")
+    log_info("Connecting to SEC EDGAR and FRED MCP servers...")
 
     with sec_client, fred_client:
-        logger.info("Successfully connected to MCP servers")
-        logger.info("Retrieving tools from MCP servers...")
+        log_success("Successfully connected to MCP servers")
+        log_info("Retrieving tools from MCP servers...")
 
         sec_tools = sec_client.list_tools_sync()
         fred_tools = fred_client.list_tools_sync()
         all_tools = sec_tools + fred_tools
 
-        logger.info(f"Retrieved {len(sec_tools)} SEC EDGAR tools")
-        logger.info(f"Retrieved {len(fred_tools)} FRED tools")
-        logger.info(f"Total tools available: {len(all_tools)}")
+        log_data("SEC EDGAR tools", len(sec_tools))
+        log_data("FRED tools", len(fred_tools))
+        log_data("Total tools available", len(all_tools))
 
-        logger.info("\nCreating orchestrator agent...")
+        log_info("Creating orchestrator agent...")
 
         orchestrator = Agent(
             name="Market Research Orchestrator",
@@ -79,28 +86,23 @@ def main():
 
         Provide an integrated analysis with investment perspective."""
 
-        logger.info("\n" + "=" * 80)
-        logger.info("MARKET RESEARCH REQUEST")
-        logger.info("=" * 80)
-        logger.info(research_request)
-        logger.info("=" * 80 + "\n")
+        log_section("Market Research Request")
+        console.print(research_request)
 
-        logger.info("Orchestrator analyzing with SEC and FRED data...\n")
+        log_info("Orchestrator analyzing with SEC and FRED data...")
 
         response = orchestrator(research_request)
 
-        logger.info("\n" + "=" * 80)
-        logger.info("MARKET RESEARCH REPORT")
-        logger.info("=" * 80)
-        logger.info(response)
-        logger.info("=" * 80)
+        log_section("Market Research Report")
+        console.print(response)
 
 
 if __name__ == "__main__":
     try:
         main()
+        log_success("Research completed successfully!")
     except KeyboardInterrupt:
-        logger.info("\nResearch interrupted by user")
+        console.print("\n[warning]Research interrupted by user[/warning]")
     except Exception as e:
         logger.error(f"Research failed: {e}", exc_info=True)
         sys.exit(1)

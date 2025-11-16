@@ -3,6 +3,7 @@
 This module defines specialist agents that are wrapped as tools for the orchestrator.
 Each specialist connects to real MCP servers (SEC EDGAR and FRED).
 """
+
 from strands import Agent, tool
 
 from examples.utils.mcp_tools import get_sec_edgar_mcp_client, get_fred_mcp_client
@@ -142,7 +143,9 @@ def analyze_economic_context(sector: str, time_period: str = "recent") -> str:
         Economic analysis from macroeconomic specialist
     """
     mcp_client, analyst = create_economic_analyst()
-    prompt = f"Analyze {time_period} macroeconomic conditions and trends relevant to the {sector} sector"
+    prompt = (
+        f"Analyze {time_period} macroeconomic conditions and trends relevant to the {sector} sector"
+    )
 
     with mcp_client:
         result = analyst(prompt)
